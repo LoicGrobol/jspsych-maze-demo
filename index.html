@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/jspsych"></script>
+    <!-- The plugin is loaded here -->
+    <script src="https://unpkg.com/@jspsych/plugin-maze"></script>
+    <script src="jspsych-maze.js"></script>
+
+    <!-- Ugly trick to keep the data separate while not having to think of how to fetch it -->
+    <script src="stimuli.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
+  </head>
+
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych();
+
+    const procedure = {
+      timeline: [
+        {
+          type: jsPsychMaze,
+          sentence: jsPsych.timelineVariable("sentence"),
+          waiting_time: 200,
+          on_finish: () => {
+            jsPsych.data.displayData("json");
+          },
+        },
+      ],
+      timeline_variables: data,
+    };
+
+    jsPsych.run(procedure);
+  </script>
+</html>
