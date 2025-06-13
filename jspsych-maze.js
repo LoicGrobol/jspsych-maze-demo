@@ -240,7 +240,7 @@ var jsPsychMaze = (function (jspsych) {
         ctx.fillStyle = trial.font_colour;
         ctx.fillText(left_word, position_left.x, position_left.y);
         ctx.fillText(right_word, position_right.x, position_right.y);
-        if (text !== null) {
+        if (null !== text) {
           ctx.fillText(text, position_text.x, position_text.y);
         }
       };
@@ -255,9 +255,6 @@ var jsPsychMaze = (function (jspsych) {
           last_display_time = 0;
         }
         const rt = info2.rt - last_display_time;
-        if (rt < trial.waiting_time) {
-          return;
-        }
         if (word_number >= 0) {
           const correct = word_on_the_left[word_number]
             ? info2.key == trial.keys.left
@@ -281,7 +278,7 @@ var jsPsychMaze = (function (jspsych) {
           display_words(left, right);
           last_display_time = info2.rt;
         } else {
-          if (trial.question !== null) {
+          if (void 0 !== trial.question) {
             ask_question();
           } else {
             end_trial();
@@ -303,6 +300,7 @@ var jsPsychMaze = (function (jspsych) {
           rt_method: "performance",
           persist: true,
           allow_held_key: false,
+          minimum_valid_rt: trial.waiting_time,
         });
       };
       const ask_question = () => {
@@ -338,4 +336,4 @@ var jsPsychMaze = (function (jspsych) {
 
   return MazePlugin;
 })(jsPsychModule);
-//# sourceMappingURL=index.browser.js.map
+//# sourceMappingURL=jspsych-maze.js.map
