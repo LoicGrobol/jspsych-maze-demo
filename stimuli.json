@@ -1,0 +1,234 @@
+[
+    {
+        "sentence": [
+            [
+                "After",
+                "x-x-x"
+            ],
+            [
+                "a",
+                "so"
+            ],
+            [
+                "bit",
+                "pot"
+            ],
+            [
+                "of",
+                "if"
+            ],
+            [
+                "success",
+                "singing"
+            ],
+            [
+                "the",
+                "ate"
+            ],
+            [
+                "stocks",
+                "winter"
+            ],
+            [
+                "took",
+                "walk"
+            ],
+            [
+                "a",
+                "we"
+            ],
+            [
+                "dive",
+                "toad"
+            ]
+        ],
+        "question": {
+            "text": "Did the stocks take a dive?",
+            "correct": "yes",
+            "wrong": "no"
+        },
+        "group": 0
+    },
+    {
+        "sentence": [
+            [
+                "The",
+                "x-x-x"
+            ],
+            [
+                "fashion",
+                "realize"
+            ],
+            [
+                "model",
+                "shirt"
+            ],
+            [
+                "was",
+                "see"
+            ],
+            [
+                "very",
+                "into"
+            ],
+            [
+                "self-conscious",
+                "professionally"
+            ],
+            [
+                "of",
+                "do"
+            ],
+            [
+                "her",
+                "why"
+            ],
+            [
+                "appearance",
+                "sandwiches"
+            ]
+        ],
+        "question": {
+            "text": "Who was self-conscious?",
+            "correct": "The model",
+            "wrong": "The designer"
+        },
+        "group": 0
+    },
+    {
+        "sentence": [
+            [
+                "For",
+                "x-x-x"
+            ],
+            [
+                "many",
+                "buddy"
+            ],
+            [
+                "small",
+                "behave"
+            ],
+            [
+                "businesses",
+                "suppressing"
+            ],
+            [
+                "running",
+                "artichoke"
+            ],
+            [
+                "companies",
+                "presiding"
+            ],
+            [
+                "was",
+                "fine"
+            ],
+            [
+                "a",
+                "if"
+            ],
+            [
+                "matter",
+                "wanted"
+            ],
+            [
+                "of",
+                "did"
+            ],
+            [
+                "hiring",
+                "teased"
+            ],
+            [
+                "professional",
+                "granddaughter"
+            ],
+            [
+                "outside",
+                "forgive"
+            ],
+            [
+                "management",
+                "melancholy"
+            ]
+        ],
+        "question": {
+            "text": "Did many small businesses employ outside management?",
+            "correct": "yes",
+            "wrong": "no"
+        },
+        "group": 1
+    },
+    {
+        "sentence": [
+            [
+                "At",
+                "x-x-x"
+            ],
+            [
+                "many",
+                "hurts"
+            ],
+            [
+                "banks",
+                "versa"
+            ],
+            [
+                "today",
+                "marry"
+            ],
+            [
+                "lending",
+                "condone"
+            ],
+            [
+                "money",
+                "lovely"
+            ],
+            [
+                "is",
+                "me"
+            ],
+            [
+                "less",
+                "fries"
+            ],
+            [
+                "lucrative",
+                "actresses"
+            ],
+            [
+                "than",
+                "gotta"
+            ],
+            [
+                "it",
+                "my"
+            ],
+            [
+                "was",
+                "sir"
+            ],
+            [
+                "ten",
+                "wrap"
+            ],
+            [
+                "years",
+                "loved"
+            ],
+            [
+                "ago",
+                "bat"
+            ]
+        ],
+        "question": {
+            "text": "Is lending money as lucrative as it was ten years ago?",
+            "correct": "no",
+            "wrong": "yes"
+        },
+        "group": 1
+    }
+]

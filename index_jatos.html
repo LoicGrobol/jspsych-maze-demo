@@ -6,80 +6,70 @@
     <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script>
 
     <script src="https://unpkg.com/@jspsych/plugin-maze"></script>
-    <script src="jspsych-maze.js"></script>
-
-    <!-- Ugly trick to keep the data separate while not having to think of how to fetch it. -->
-    <script src="stimuli.js"></script>
+    <script src="jspsych-plugin-maze/jspsych-maze.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
   </head>
 
   <body></body>
   <script>
-    // Another option is to fetch data from a json file somewhere. This will not work in local
-    // unless you serve this html (as opposed to just opening it in a browser due to CORS).
-
-    // try {
-    //   const response = await fetch("https://myserver.love/path/to/data.json");
-    //   if (!response.ok) {
-    //     throw new Error(`Response status: ${response.status}`);
-    //   }
-    //   const data = await response.json();
-    // } catch (error) {
-    //   console.error(error.message);
-    // }
-
     // Data-processing phase: all of this depends on how you manage your stimuli. This is an example
     // of how to select a random group of sentences and shuffles them.
-    const jsPsych = initJsPsych({
-      on_finish: () => {
-        jatos.endStudy(jsPsych.data.get().json());
-      },
-    });
-    const all_groups = [...new Set(data.map(({ group, ..._ }) => group))];
-    const group = jsPsych.randomization.sampleWithoutReplacement(
-      all_groups,
-      1
-    )[0];
-    const trials = jsPsych.randomization.shuffle(
-      data.filter(({ group: g, ..._ }) => group == g)
-    );
+    // Another option is to fetch data from a json file somewhere. This will not work in local
+    // unless you serve this html (as opposed to just opening it in a browser due to CORS).
+    fetch("stimuli.json")
+      .then((response) => response.json())
+      .then((data) => {
+        const jsPsych = initJsPsych({
+          on_finish: () => {
+            jatos.endStudy(jsPsych.data.get().json());
+          },
+        });
+        const all_groups = [...new Set(data.map(({ group, ..._ }) => group))];
+        const group = jsPsych.randomization.sampleWithoutReplacement(
+          all_groups,
+          1
+        )[0];
+        const trials = jsPsych.randomization.shuffle(
+          data.filter(({ group: g, ..._ }) => group == g)
+        );
 
-    // Just to help people testing this demo, the plugin doesn't need instructions per se
-    const instructions = {
-      type: jsPsychInstructions,
-      pages: [
-        `Press <span style="color: red;">J</span> to advance.`,
-        "In this experiment we are interested in seeing how quickly you<br>can decide what the best way is to continue a sentence.",
-        "You will see two words, one on the left and one on the right.<br>One word will be obviously wrong.",
-        "It is your job to decide which word is the correct continuation of the sentence.",
-        `Press <span style="color: red;">F</span> if the correct answer is on the left, or <span style="color: red;">J</span> if the correct answer is on the right.`,
-        "You should do this as quickly and accurately as possible.",
-        "You will then answer a question about that sentence.",
-        `When you are ready, press <span style="color: red;">J</span> to do a practice run.`,
-      ],
-      allow_keys: true,
-      key_backward: "f",
-      key_forward: "j",
-      show_clickable_nav: false,
-    };
+        // Just to help people testing this demo, the plugin doesn't need instructions per se
+        const instructions = {
+          type: jsPsychInstructions,
+          pages: [
+            `Press <span style="color: red;">J</span> to advance.`,
+            "In this experiment we are interested in seeing how quickly you<br>can decide what the best way is to continue a sentence.",
+            "You will see two words, one on the left and one on the right.<br>One word will be obviously wrong.",
+            "It is your job to decide which word is the correct continuation of the sentence.",
+            `Press <span style="color: red;">F</span> if the correct answer is on the left, or <span style="color: red;">J</span> if the correct answer is on the right.`,
+            "You should do this as quickly and accurately as possible.",
+            "You will then answer a question about that sentence.",
+            `When you are ready, press <span style="color: red;">J</span> to do a practice run.`,
+          ],
+          allow_keys: true,
+          key_backward: "f",
+          key_forward: "j",
+          show_clickable_nav: false,
+        };
 
-    // The actual maze experiment
-    const procedure = {
-      timeline: [
-        {
-          type: jsPsychMaze,
-          sentence: jsPsych.timelineVariable("sentence"),
-          question: jsPsych.timelineVariable("question"),
-          waiting_time: 200,
-          data: { group: group }, // This is not specific to the Maze plugin
-        },
-      ],
-      timeline_variables: trials,
-    };
+        // The actual maze experiment
+        const procedure = {
+          timeline: [
+            {
+              type: jsPsychMaze,
+              sentence: jsPsych.timelineVariable("sentence"),
+              question: jsPsych.timelineVariable("question"),
+              waiting_time: 200,
+              data: { group: group }, // This is not specific to the Maze plugin
+            },
+          ],
+          timeline_variables: trials,
+        };
 
-    jatos.onLoad(() => {
-      jsPsych.run([instructions, procedure]);
-    });
+        jatos.onLoad(() => {
+          jsPsych.run([instructions, procedure]);
+        });
+      });
   </script>
 </html>
