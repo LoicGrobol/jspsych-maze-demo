@@ -12,15 +12,15 @@ var jsPsychMaze = (function (jspsych) {
         type: jspsych.ParameterType.COMPLEX,
         array: true,
       },
-      /** Object with key "text", "correct", "wrong". Can't give a schema of it gets non-nullable. **/
+      /** Object with key "text", "correct", "wrong". Can't give a schema or it gets non-nullable. **/
       question: {
         type: jspsych.ParameterType.COMPLEX,
         default: null,
       },
-      canvas_border: {
+      canvas_style: {
         type: jspsych.ParameterType.STRING,
-        pretty_name: "Canvas border",
-        default: "0px solid black",
+        pretty_name: "Extra canvas style",
+        default: "border: 0px solid black;",
       },
       canvas_colour: {
         type: jspsych.ParameterType.STRING,
@@ -52,6 +52,13 @@ var jsPsychMaze = (function (jspsych) {
         type: jspsych.ParameterType.STRING,
         pretty_name: "Font weight",
         default: "normal",
+      },
+      /** Whether to stop the trial on the first error and go directly to the question (if any) or
+       * exit. */
+      halt_on_error: {
+        type: jspsych.ParameterType.BOOL,
+        pretty_name: "Halt on error",
+        default: false,
       },
       keys: {
         type: jspsych.ParameterType.COMPLEX,
@@ -172,7 +179,7 @@ var jsPsychMaze = (function (jspsych) {
         id="canvas"
         width="${trial.canvas_size[0]}"
         height="${trial.canvas_size[1]}"
-        style="border:${trial.canvas_border};"
+        style="${trial.canvas_style}"
       ></canvas>
       </div>`;
       const sentence_font = `${trial.font_weight} ${trial.font_size} ${trial.font_family}`;
@@ -224,7 +231,7 @@ var jsPsychMaze = (function (jspsych) {
       };
       let keyboardListener;
       const clear_canvas = () => {
-        ctx.font = trial.canvas_colour;
+        ctx.font = trial.canvas_font;
         ctx.fillStyle = trial.canvas_colour;
         ctx.fillRect(
           canvas_rect[0],
@@ -250,59 +257,6 @@ var jsPsychMaze = (function (jspsych) {
         ctx.fillStyle = trial.font_colour;
         ctx.fillText(message, canvas_center.x, canvas_center.y);
       };
-      const after_response = (info2) => {
-        if (void 0 === last_display_time) {
-          last_display_time = 0;
-        }
-        const rt = info2.rt - last_display_time;
-        if (word_number >= 0) {
-          const correct = word_on_the_left[word_number]
-            ? info2.key == trial.keys.left
-            : info2.key == trial.keys.righ;
-          const [word, foil] = trial.sentence[word_number];
-          trial_data.events.push({
-            correct,
-            foil,
-            rt,
-            side: word_on_the_left[word_number] ? "left" : "right",
-            word,
-            word_number,
-          });
-        }
-        if (word_number < trial.sentence.length - 1) {
-          word_number++;
-          const [word, foil] = trial.sentence[word_number];
-          const [left, right] = word_on_the_left[word_number]
-            ? [word, foil]
-            : [foil, word];
-          display_words(left, right);
-          last_display_time = info2.rt;
-        } else {
-          if (void 0 !== trial.question) {
-            ask_question();
-          } else {
-            end_trial();
-          }
-        }
-      };
-      const start_trial = () => {
-        word_number = -1;
-        word_on_the_left = Array.from(
-          { length: trial.sentence.length },
-          (_value, _index) => Math.random() < 0.5
-        );
-        display_message(
-          `Press ${trial.keys.left} or ${trial.keys.right} to start`
-        );
-        keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
-          callback_function: after_response,
-          valid_responses: [trial.keys.left, trial.keys.right],
-          rt_method: "performance",
-          persist: true,
-          allow_held_key: false,
-          minimum_valid_rt: trial.waiting_time,
-        });
-      };
       const ask_question = () => {
         this.jsPsych.pluginAPI.cancelKeyboardResponse(keyboardListener);
         const correct_on_the_left = Math.random() < 0.5;
@@ -317,6 +271,7 @@ var jsPsychMaze = (function (jspsych) {
               correct: correct_on_the_left
                 ? info2.key == trial.keys.left
                 : info2.key == trial.keys.right,
+              rt: info2.rt,
             };
             end_trial();
           },
@@ -326,11 +281,71 @@ var jsPsychMaze = (function (jspsych) {
           allow_held_key: false,
         });
       };
+      const after_response = (info2) => {
+        const rt = info2.rt - last_display_time;
+        const correct = word_on_the_left[word_number]
+          ? info2.key == trial.keys.left
+          : info2.key == trial.keys.righ;
+        const [word, foil] = trial.sentence[word_number];
+        trial_data.events.push({
+          correct,
+          foil,
+          rt,
+          side: word_on_the_left[word_number] ? "left" : "right",
+          word,
+          word_number,
+        });
+        if (
+          word_number < trial.sentence.length - 1 &&
+          (correct || !trial.halt_on_error)
+        ) {
+          word_number++;
+          const [word2, foil2] = trial.sentence[word_number];
+          const [left, right] = word_on_the_left[word_number]
+            ? [word2, foil2]
+            : [foil2, word2];
+          display_words(left, right);
+          last_display_time = info2.rt;
+        } else {
+          if (void 0 !== trial.question) {
+            ask_question();
+          } else {
+            end_trial();
+          }
+        }
+      };
+      const start_trial = () => {
+        last_display_time = 0;
+        keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
+          callback_function: after_response,
+          valid_responses: [trial.keys.left, trial.keys.right],
+          rt_method: "performance",
+          persist: true,
+          allow_held_key: false,
+          minimum_valid_rt: trial.waiting_time,
+        });
+      };
       const end_trial = () => {
         this.jsPsych.pluginAPI.cancelKeyboardResponse(keyboardListener);
         this.jsPsych.finishTrial(trial_data);
       };
-      start_trial();
+      const setup = () => {
+        word_number = 0;
+        word_on_the_left = Array.from(
+          { length: trial.sentence.length },
+          (_value, _index) => Math.random() < 0.5
+        );
+        display_message(
+          `Press ${trial.keys.left} or ${trial.keys.right} to start`
+        );
+        keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
+          callback_function: start_trial,
+          valid_responses: [trial.keys.left, trial.keys.right],
+          persist: false,
+          allow_held_key: false,
+        });
+      };
+      setup();
     }
   }
 
