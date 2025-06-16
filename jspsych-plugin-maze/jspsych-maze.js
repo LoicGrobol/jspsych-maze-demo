@@ -281,6 +281,11 @@ var jsPsychMaze = (function (jspsych) {
           allow_held_key: false,
         });
       };
+      const step_display = (n) => {
+        const [word, foil] = trial.sentence[n];
+        const [left, right] = word_on_the_left[n] ? [word, foil] : [foil, word];
+        display_words(left, right);
+      };
       const after_response = (info2) => {
         const rt = info2.rt - last_display_time;
         const correct = word_on_the_left[word_number]
@@ -300,11 +305,7 @@ var jsPsychMaze = (function (jspsych) {
           (correct || !trial.halt_on_error)
         ) {
           word_number++;
-          const [word2, foil2] = trial.sentence[word_number];
-          const [left, right] = word_on_the_left[word_number]
-            ? [word2, foil2]
-            : [foil2, word2];
-          display_words(left, right);
+          step_display(word_number);
           last_display_time = info2.rt;
         } else {
           if (void 0 !== trial.question) {
@@ -314,8 +315,9 @@ var jsPsychMaze = (function (jspsych) {
           }
         }
       };
-      const start_trial = () => {
-        last_display_time = 0;
+      const start_trial = (info2) => {
+        step_display(0);
+        last_display_time = info2.rt;
         keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
           callback_function: after_response,
           valid_responses: [trial.keys.left, trial.keys.right],
