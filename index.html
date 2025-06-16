@@ -15,7 +15,23 @@
 
   <body></body>
   <script>
-    const jsPsych = initJsPsych();
+    // Data-processing phase: all of this depends on how you manage your stimuli. This is an example
+    // of how to select a random group of sentences and shuffles them.
+    const jsPsych = initJsPsych({
+      on_finish: () => {
+        jsPsych.data.displayData("json");
+      },
+    });
+    const all_groups = [...new Set(data.map(({ group, ..._ }) => group))];
+    const group = jsPsych.randomization.sampleWithoutReplacement(
+      all_groups,
+      1
+    )[0];
+    const trials = jsPsych.randomization.shuffle(
+      data.filter(({ group: g, ..._ }) => group == g)
+    );
+
+    // Just to help people testing this demo, the plugin doesn't need instructions per se
     const instructions = {
       type: jsPsychInstructions,
       pages: [
@@ -33,6 +49,8 @@
       key_forward: "j",
       show_clickable_nav: false,
     };
+
+    // The actual maze experiment
     const procedure = {
       timeline: [
         {
@@ -40,12 +58,10 @@
           sentence: jsPsych.timelineVariable("sentence"),
           question: jsPsych.timelineVariable("question"),
           waiting_time: 200,
-          on_finish: () => {
-            jsPsych.data.displayData("json");
-          },
+          data: {group: group}  // This is not specific to the Maze plugin
         },
       ],
-      timeline_variables: data,
+      timeline_variables: trials,
     };
 
     jsPsych.run([instructions, procedure]);
