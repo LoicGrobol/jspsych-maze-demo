@@ -7,7 +7,7 @@
     <script src="https://unpkg.com/@jspsych/plugin-maze"></script>
     <script src="jspsych-maze.js"></script>
 
-    <!-- Ugly trick to keep the data separate while not having to think of how to fetch it -->
+    <!-- Ugly trick to keep the data separate while not having to think of how to fetch it. -->
     <script src="stimuli.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
@@ -15,6 +15,19 @@
 
   <body></body>
   <script>
+    // Another option is to fetch data from a json file somewhere. This will not work in local
+    // unless you serve this html (as opposed to just opening it in a browser due to CORS).
+
+    // try {
+    //   const response = await fetch("https://myserver.love/path/to/data.json");
+    //   if (!response.ok) {
+    //     throw new Error(`Response status: ${response.status}`);
+    //   }
+    //   const data = await response.json();
+    // } catch (error) {
+    //   console.error(error.message);
+    // }
+
     // Data-processing phase: all of this depends on how you manage your stimuli. This is an example
     // of how to select a random group of sentences and shuffles them.
     const jsPsych = initJsPsych({
@@ -58,7 +71,7 @@
           sentence: jsPsych.timelineVariable("sentence"),
           question: jsPsych.timelineVariable("question"),
           waiting_time: 200,
-          data: {group: group}  // This is not specific to the Maze plugin
+          data: { group: group }, // This is not specific to the Maze plugin
         },
       ],
       timeline_variables: trials,
