@@ -285,7 +285,7 @@ var jsPsychMaze = (function (jspsych) {
       };
       const start_trial = (info2) => {
         step_display(0);
-        last_display_time = info2.rt;
+        last_display_time = 0;
         this.keyboard_listener = this.jsPsych.pluginAPI.getKeyboardResponse({
           callback_function: after_response,
           valid_responses: [this.keys.left, this.keys.right],
