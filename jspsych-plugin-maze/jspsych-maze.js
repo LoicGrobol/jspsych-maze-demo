@@ -38,20 +38,10 @@ var jsPsychMaze = (function (jspsych) {
         pretty_name: "Font colour",
         default: "black",
       },
-      font_family: {
-        type: jspsych.ParameterType.STRING,
-        pretty_name: "Font family",
-        default: "monospace",
-      },
-      font_size: {
+      font_style: {
         type: jspsych.ParameterType.STRING,
         pretty_name: "Font size",
-        default: "24px",
-      },
-      font_weight: {
-        type: jspsych.ParameterType.STRING,
-        pretty_name: "Font weight",
-        default: "normal",
+        default: "normal 24px monospace",
       },
       /** Whether to stop the trial on the first error and go directly to the question (if any) or
        * exit. */
@@ -174,7 +164,8 @@ var jsPsychMaze = (function (jspsych) {
       this.info = info;
     }
     trial(display_element, trial) {
-      display_element.innerHTML = `<div>
+      this.display_element = display_element;
+      this.display_element.innerHTML = `<div>
       <canvas
         id="canvas"
         width="${trial.canvas_size[0]}"
@@ -182,100 +173,78 @@ var jsPsychMaze = (function (jspsych) {
         style="${trial.canvas_style}"
       ></canvas>
       </div>`;
-      const sentence_font = `${trial.font_weight} ${trial.font_size} ${trial.font_family}`;
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
-      const canvas_rect = set_canvas(
-        canvas,
-        ctx,
-        trial.canvas_colour,
+      this.canvas = document.getElementById("canvas");
+      this.canvas_colour = trial.canvas_colour;
+      this.ctx = this.canvas.getContext("2d");
+      this.ctx.font = trial.font_style;
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
+      this.canvas_rect = set_canvas(
+        this.canvas,
+        this.ctx,
+        this.canvas_colour,
         trial.translate_origin
       );
-      const canvas_center = {
-        x: canvas_rect[0] + canvas_rect[2] / 2,
-        y: canvas_rect[1] + canvas_rect[3] / 2,
+      this.canvas_center = {
+        x: this.canvas_rect[0] + this.canvas_rect[2] / 2,
+        y: this.canvas_rect[1] + this.canvas_rect[3] / 2,
       };
-      const position_left = {
+      this.font_colour = trial.font_colour;
+      this.keys = trial.keys;
+      this.position_left = {
         x:
           trial.position_left.x !== null
             ? trial.position_left.x
-            : canvas_rect[0] + canvas_rect[2] / 3,
+            : this.canvas_rect[0] + this.canvas_rect[2] / 3,
         y:
           trial.position_left.y !== null
             ? trial.position_left.y
-            : canvas_center.y,
+            : this.canvas_center.y,
       };
-      const position_right = {
+      this.position_right = {
         x:
           trial.position_right.x !== null
             ? trial.position_right.x
-            : canvas_rect[0] + (2 * canvas_rect[2]) / 3,
+            : this.canvas_rect[0] + (2 * this.canvas_rect[2]) / 3,
         y:
           trial.position_right.y !== null
             ? trial.position_right.y
-            : canvas_center.y,
+            : this.canvas_center.y,
       };
-      const position_text = {
-        x: canvas_center.x,
-        y: (canvas_center.y + canvas_rect[1]) / 2,
+      this.position_text = {
+        x: this.canvas_center.x,
+        y: (this.canvas_center.y + this.canvas_rect[1]) / 2,
       };
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      let word_on_the_left;
-      let word_number;
-      let last_display_time;
-      let trial_data = {
+      const results = {
         sentence: trial.sentence.map((x) => x[0]).join(" "),
         events: [],
         question: null,
       };
-      let keyboardListener;
-      const clear_canvas = () => {
-        ctx.font = trial.canvas_font;
-        ctx.fillStyle = trial.canvas_colour;
-        ctx.fillRect(
-          canvas_rect[0],
-          canvas_rect[1],
-          canvas_rect[2],
-          canvas_rect[3]
-        );
-        ctx.beginPath();
-      };
-      const display_words = (left_word, right_word, text = null) => {
-        clear_canvas();
-        ctx.font = sentence_font;
-        ctx.fillStyle = trial.font_colour;
-        ctx.fillText(left_word, position_left.x, position_left.y);
-        ctx.fillText(right_word, position_right.x, position_right.y);
-        if (null !== text) {
-          ctx.fillText(text, position_text.x, position_text.y);
-        }
-      };
-      const display_message = (message) => {
-        clear_canvas();
-        ctx.font = sentence_font;
-        ctx.fillStyle = trial.font_colour;
-        ctx.fillText(message, canvas_center.x, canvas_center.y);
-      };
+      let last_display_time;
+      let word_number = 0;
+      const word_on_the_left = Array.from(
+        { length: trial.sentence.length },
+        (_value, _index) => Math.random() < 0.5
+      );
       const ask_question = () => {
-        this.jsPsych.pluginAPI.cancelKeyboardResponse(keyboardListener);
+        this.jsPsych.pluginAPI.cancelKeyboardResponse(this.keyboard_listener);
         const correct_on_the_left = Math.random() < 0.5;
         const [left, right] = correct_on_the_left
           ? [trial.question.correct, trial.question.wrong]
           : [trial.question.wrong, trial.question.correct];
-        display_words(left, right, trial.question.text);
-        keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
+        this.display_words(left, right, trial.question.text);
+        this.keyboard_listener = this.jsPsych.pluginAPI.getKeyboardResponse({
           callback_function: (info2) => {
-            trial_data.question = {
+            results.question = {
               question: trial.question,
               correct: correct_on_the_left
-                ? info2.key == trial.keys.left
-                : info2.key == trial.keys.right,
+                ? info2.key == this.keys.left
+                : info2.key == this.keys.right,
               rt: info2.rt,
             };
             end_trial();
           },
-          valid_responses: [trial.keys.left, trial.keys.right],
+          valid_responses: [this.keys.left, this.keys.right],
           rt_method: "performance",
           persist: true,
           allow_held_key: false,
@@ -284,21 +253,20 @@ var jsPsychMaze = (function (jspsych) {
       const step_display = (n) => {
         const [word, foil] = trial.sentence[n];
         const [left, right] = word_on_the_left[n] ? [word, foil] : [foil, word];
-        display_words(left, right);
+        this.display_words(left, right);
       };
       const after_response = (info2) => {
         const rt = info2.rt - last_display_time;
         const correct = word_on_the_left[word_number]
-          ? info2.key == trial.keys.left
-          : info2.key == trial.keys.righ;
+          ? info2.key == this.keys.left
+          : info2.key == this.keys.right;
         const [word, foil] = trial.sentence[word_number];
-        trial_data.events.push({
+        results.events.push({
           correct,
           foil,
           rt,
           side: word_on_the_left[word_number] ? "left" : "right",
           word,
-          word_number,
         });
         if (
           word_number < trial.sentence.length - 1 &&
@@ -318,9 +286,9 @@ var jsPsychMaze = (function (jspsych) {
       const start_trial = (info2) => {
         step_display(0);
         last_display_time = info2.rt;
-        keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
+        this.keyboard_listener = this.jsPsych.pluginAPI.getKeyboardResponse({
           callback_function: after_response,
-          valid_responses: [trial.keys.left, trial.keys.right],
+          valid_responses: [this.keys.left, this.keys.right],
           rt_method: "performance",
           persist: true,
           allow_held_key: false,
@@ -328,26 +296,44 @@ var jsPsychMaze = (function (jspsych) {
         });
       };
       const end_trial = () => {
-        this.jsPsych.pluginAPI.cancelKeyboardResponse(keyboardListener);
-        this.jsPsych.finishTrial(trial_data);
+        this.jsPsych.pluginAPI.cancelKeyboardResponse(this.keyboard_listener);
+        this.jsPsych.finishTrial(results);
       };
       const setup = () => {
-        word_number = 0;
-        word_on_the_left = Array.from(
-          { length: trial.sentence.length },
-          (_value, _index) => Math.random() < 0.5
+        this.display_message(
+          `Press ${this.keys.left} or ${this.keys.right} to start`
         );
-        display_message(
-          `Press ${trial.keys.left} or ${trial.keys.right} to start`
-        );
-        keyboardListener = this.jsPsych.pluginAPI.getKeyboardResponse({
+        this.keyboard_listener = this.jsPsych.pluginAPI.getKeyboardResponse({
           callback_function: start_trial,
-          valid_responses: [trial.keys.left, trial.keys.right],
+          valid_responses: [this.keys.left, this.keys.right],
           persist: false,
           allow_held_key: false,
         });
       };
       setup();
+    }
+    clear_canvas() {
+      this.ctx.fillStyle = this.canvas_colour;
+      this.ctx.fillRect(...this.canvas_rect);
+      this.ctx.beginPath();
+    }
+    display_words(left_word, right_word, text = null) {
+      this.clear_canvas();
+      this.ctx.fillStyle = this.font_colour;
+      this.ctx.fillText(left_word, this.position_left.x, this.position_left.y);
+      this.ctx.fillText(
+        right_word,
+        this.position_right.x,
+        this.position_right.y
+      );
+      if (null !== text) {
+        this.ctx.fillText(text, this.position_text.x, this.position_text.y);
+      }
+    }
+    display_message(message) {
+      this.clear_canvas();
+      this.ctx.fillStyle = this.font_colour;
+      this.ctx.fillText(message, this.canvas_center.x, this.canvas_center.y);
     }
   }
 
