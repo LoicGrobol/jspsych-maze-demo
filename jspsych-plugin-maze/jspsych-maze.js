@@ -33,6 +33,12 @@ var jsPsychMaze = (function (jspsych) {
         pretty_name: "Canvas size",
         default: [1280, 960],
       },
+      /** How long to wait on a blank screen before displaying the question. */
+      end_interval: {
+        type: jspsych.ParameterType.INT,
+        pretty_name: "End interval",
+        default: 0,
+      },
       font_colour: {
         type: jspsych.ParameterType.STRING,
         pretty_name: "Font colour",
@@ -49,6 +55,12 @@ var jsPsychMaze = (function (jspsych) {
         type: jspsych.ParameterType.BOOL,
         pretty_name: "Halt on error",
         default: false,
+      },
+      /** How long to wait on a blank screen before displaying the next word. */
+      inter_word_interval: {
+        type: jspsych.ParameterType.INT,
+        pretty_name: "Inter-words interval",
+        default: 0,
       },
       keys: {
         type: jspsych.ParameterType.COMPLEX,
@@ -95,16 +107,16 @@ var jsPsychMaze = (function (jspsych) {
           pretty_name: "Vertical position",
         },
       },
+      /** The minimum time (in ms) before the subject is allowed to chose a word. */
+      pre_answer_interval: {
+        type: jspsych.ParameterType.INT,
+        pretty_name: "Waiting time",
+        default: 0,
+      },
       translate_origin: {
         type: jspsych.ParameterType.BOOL,
         pretty_name: "Translate origin",
         default: true,
-      },
-      /** How long to wait after showing a word and before registering keypresses (in ms) */
-      waiting_time: {
-        type: jspsych.ParameterType.INT,
-        pretty_name: "Waiting time",
-        default: 0,
       },
     },
     data: {
@@ -227,7 +239,6 @@ var jsPsychMaze = (function (jspsych) {
         (_value, _index) => Math.random() < 0.5
       );
       const ask_question = () => {
-        this.jsPsych.pluginAPI.cancelKeyboardResponse(this.keyboard_listener);
         const correct_on_the_left = Math.random() < 0.5;
         const [left, right] = correct_on_the_left
           ? [trial.question.correct, trial.question.wrong]
@@ -273,11 +284,20 @@ var jsPsychMaze = (function (jspsych) {
           (correct || !trial.halt_on_error)
         ) {
           word_number++;
-          step_display(word_number);
-          last_display_time = info2.rt;
+          this.clear_display();
+          this.jsPsych.pluginAPI.setTimeout(
+            () => step_display(word_number),
+            trial.inter_word_interval
+          );
+          last_display_time = info2.rt + trial.inter_word_interval;
         } else {
+          this.jsPsych.pluginAPI.cancelKeyboardResponse(this.keyboard_listener);
           if (void 0 !== trial.question) {
-            ask_question();
+            this.clear_display();
+            this.jsPsych.pluginAPI.setTimeout(
+              () => ask_question(),
+              trial.end_interval
+            );
           } else {
             end_trial();
           }
@@ -292,7 +312,8 @@ var jsPsychMaze = (function (jspsych) {
           rt_method: "performance",
           persist: true,
           allow_held_key: false,
-          minimum_valid_rt: trial.waiting_time,
+          minimum_valid_rt:
+            trial.inter_word_interval + trial.pre_answer_interval,
         });
       };
       const end_trial = () => {
@@ -312,13 +333,13 @@ var jsPsychMaze = (function (jspsych) {
       };
       setup();
     }
-    clear_canvas() {
+    clear_display() {
       this.ctx.fillStyle = this.canvas_colour;
       this.ctx.fillRect(...this.canvas_rect);
       this.ctx.beginPath();
     }
     display_words(left_word, right_word, text = null) {
-      this.clear_canvas();
+      this.clear_display();
       this.ctx.fillStyle = this.font_colour;
       this.ctx.fillText(left_word, this.position_left.x, this.position_left.y);
       this.ctx.fillText(
@@ -331,7 +352,7 @@ var jsPsychMaze = (function (jspsych) {
       }
     }
     display_message(message) {
-      this.clear_canvas();
+      this.clear_display();
       this.ctx.fillStyle = this.font_colour;
       this.ctx.fillText(message, this.canvas_center.x, this.canvas_center.y);
     }
