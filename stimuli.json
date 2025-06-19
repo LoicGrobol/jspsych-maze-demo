@@ -44,8 +44,9 @@
         ],
         "question": {
             "text": "Did the stocks take a dive?",
-            "correct": "yes",
-            "wrong": "no"
+            "left": "yes",
+            "right": "no",
+            "correct": "left"
         },
         "group": 0
     },
@@ -90,8 +91,9 @@
         ],
         "question": {
             "text": "Who was self-conscious?",
-            "correct": "The model",
-            "wrong": "The designer"
+            "left": "The designer",
+            "right": "The model",
+            "correct": "right"
         },
         "group": 0
     },
@@ -156,8 +158,9 @@
         ],
         "question": {
             "text": "Did many small businesses employ outside management?",
-            "correct": "yes",
-            "wrong": "no"
+            "left": "yes",
+            "right": "no",
+            "correct": "left"
         },
         "group": 1
     },
@@ -226,8 +229,9 @@
         ],
         "question": {
             "text": "Is lending money as lucrative as it was ten years ago?",
-            "correct": "no",
-            "wrong": "yes"
+            "left": "yes",
+            "right": "no",
+            "correct": "right"
         },
         "group": 1
     }

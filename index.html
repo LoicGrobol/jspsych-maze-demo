@@ -3,6 +3,7 @@
   <head>
     <script src="https://unpkg.com/jspsych"></script>
     <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
 
     <script src="https://unpkg.com/@jspsych/plugin-maze"></script>
     <script src="jspsych-plugin-maze/jspsych-maze.js"></script>
@@ -57,16 +58,35 @@
         {
           type: jsPsychMaze,
           sentence: jsPsych.timelineVariable("sentence"),
-          question: jsPsych.timelineVariable("question"),
           inter_word_interval: 100,
-          end_interval: 500,
           pre_answer_interval: 200,
-          // These are not specific to the Maze plugin
-          data: { group: group },
+          halt_on_error: true,
+          post_trial_gap: 500,
+        },
+        {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: () => jsPsych.evaluateTimelineVariable("question").text,
+          choices: ["f", "j"],
+          prompt: () => `
+            <span style="margin: 5em 8em 0 8em; display: inline-block;">${
+              jsPsych.evaluateTimelineVariable("question").left
+            }</span>
+            <span style="margin: 5em 8em 0 8em; display: inline-block;">${
+              jsPsych.evaluateTimelineVariable("question").right
+            }</span>`,
+          on_finish: (data) => {
+            success: jsPsych.pluginAPI.compareKeys(
+              data.response,
+              "left" === jsPsych.evaluateTimelineVariable("question").correct
+                ? "f"
+                : "j"
+            );
+          },
           post_trial_gap: 1000,
         },
       ],
       timeline_variables: trials,
+      data: { group: group },
     };
 
     jsPsych.run([instructions, procedure]);
