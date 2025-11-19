@@ -56,40 +56,41 @@
 
         // The actual maze experiment
         const procedure = {
-			timeline: [
-				{
-				type: jsPsychMaze,
-				sentence: jsPsych.timelineVariable("sentence"),
-				inter_word_interval: 100,
-				pre_answer_interval: 200,
-				halt_on_error: true,
-				post_trial_gap: 500,
-				},
-				{
-				type: jsPsychHtmlKeyboardResponse,
-				stimulus: () => jsPsych.evaluateTimelineVariable("question").text,
-				choices: ["f", "j"],
-				prompt: () => `
+          timeline: [
+            {
+              type: jsPsychMaze,
+              sentence: jsPsych.timelineVariable("sentence"),
+              inter_word_interval: 100,
+              pre_answer_interval: 200,
+              halt_on_error: true,
+              post_trial_gap: 500,
+            },
+            {
+              type: jsPsychHtmlKeyboardResponse,
+              stimulus: () => jsPsych.evaluateTimelineVariable("question").text,
+              choices: ["f", "j"],
+              prompt: () => `
 					<span style="margin: 5em 8em 0 8em; display: inline-block;">${
-					jsPsych.evaluateTimelineVariable("question").left
-					}</span>
+            jsPsych.evaluateTimelineVariable("question").left
+          }</span>
 					<span style="margin: 5em 8em 0 8em; display: inline-block;">${
-					jsPsych.evaluateTimelineVariable("question").right
-					}</span>`,
-				on_finish: (data) => {
-					success: jsPsych.pluginAPI.compareKeys(
-					data.response,
-					"left" === jsPsych.evaluateTimelineVariable("question").correct
-						? "f"
-						: "j"
-					);
-				},
-				post_trial_gap: 1000,
-				},
-			],
-			timeline_variables: trials,
-			data: { group: group },
-			};
+            jsPsych.evaluateTimelineVariable("question").right
+          }</span>`,
+              on_finish: (data) => {
+                success: jsPsych.pluginAPI.compareKeys(
+                  data.response,
+                  "left" ===
+                    jsPsych.evaluateTimelineVariable("question").correct
+                    ? "f"
+                    : "j"
+                );
+              },
+              post_trial_gap: 1000,
+            },
+          ],
+          timeline_variables: trials,
+          data: { group: group },
+        };
 
         jatos.onLoad(() => {
           jsPsych.run([instructions, procedure]);
