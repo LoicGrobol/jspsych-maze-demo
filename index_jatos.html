@@ -4,7 +4,7 @@
     <script src="jatos.js"></script>
     <script src="https://unpkg.com/jspsych"></script>
     <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script>
-    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-html-swipe-response@2"></script>
 
     <script src="https://unpkg.com/@jspsych/plugin-maze"></script>
     <script src="jspsych-plugin-maze/jspsych-maze.js"></script>
@@ -51,7 +51,7 @@
           allow_keys: true,
           key_backward: "f",
           key_forward: "j",
-          show_clickable_nav: false,
+          show_clickable_nav: true,
         };
 
         // The actual maze experiment
@@ -66,24 +66,28 @@
               post_trial_gap: 500,
             },
             {
-              type: jsPsychHtmlKeyboardResponse,
+              type: jsPsychHtmlSwipeResponse,
               stimulus: () => jsPsych.evaluateTimelineVariable("question").text,
-              choices: ["f", "j"],
+              keyboard_choices: ["f", "j"],
               prompt: () => `
-					<span style="margin: 5em 8em 0 8em; display: inline-block;">${
-            jsPsych.evaluateTimelineVariable("question").left
-          }</span>
-					<span style="margin: 5em 8em 0 8em; display: inline-block;">${
-            jsPsych.evaluateTimelineVariable("question").right
-          }</span>`,
+            <span style="margin: 5em 8em 0 8em; display: inline-block;">${
+              jsPsych.evaluateTimelineVariable("question").left
+            }</span>
+			<span style="margin: 5em 8em 0 8em; display: inline-block;">${
+        jsPsych.evaluateTimelineVariable("question").right
+      }</span>`,
               on_finish: (data) => {
-                success: jsPsych.pluginAPI.compareKeys(
-                  data.response,
-                  "left" ===
-                    jsPsych.evaluateTimelineVariable("question").correct
-                    ? "f"
-                    : "j"
-                );
+                const correct_side =
+                  jsPsych.evaluateTimelineVariable("question").correct;
+                if (data.keyboard_response) {
+                  success = jsPsych.pluginAPI.compareKeys(
+                    data.response,
+                    "left" === correct_side ? "f" : "j"
+                  );
+                } else {
+                  success = data.swipe_response === correct_side;
+                }
+                return { success: success };
               },
               post_trial_gap: 1000,
             },

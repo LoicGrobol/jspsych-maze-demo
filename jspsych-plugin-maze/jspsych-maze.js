@@ -16,7 +16,7 @@ var jsPsychMaze = (function (jspsych) {
         type: jspsych.ParameterType.STRING,
         array: true,
         pretty_name: "Canvas size",
-        default: ["1280px", "960px"]
+        default: ["100vw", "100vh"]
       },
       /** Whether to stop the trial on the first error.*/
       halt_on_error: {
@@ -223,7 +223,7 @@ var jsPsychMaze = (function (jspsych) {
       };
       const setup = () => {
         this.display_message(`Press ${this.keys.left} or ${this.keys.right} to start`);
-        listen_input((response_is_left) => start_trial());
+        listen_input((_) => start_trial());
       };
       setup();
     }
@@ -263,19 +263,19 @@ var jsPsychMaze = (function (jspsych) {
       },
       { signal: touch_controller.signal }
     );
-    if (options.move_callback) {
-      element.addEventListener(
-        "touchmove",
-        (e) => {
-          e.preventDefault();
+    element.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+        if (options.move_callback) {
           for (const current_touch of e.changedTouches) {
             const start_touch = ongoingTouches.get(current_touch.identifier);
             options.move_callback(start_touch, current_touch);
           }
-        },
-        { signal: touch_controller.signal }
-      );
-    }
+        }
+      },
+      { signal: touch_controller.signal }
+    );
     element.addEventListener(
       "touchcancel",
       (e) => {
