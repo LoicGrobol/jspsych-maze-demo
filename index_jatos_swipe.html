@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="jatos.js"></script>
+    <script src="https://unpkg.com/jspsych"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-instructions@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-html-swipe-response@2"></script>
+
+    <script src="https://unpkg.com/@jspsych/plugin-maze"></script>
+    <script src="jspsych-plugin-maze/jspsych-maze.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
+  </head>
+
+  <body></body>
+  <script>
+    // Data-processing phase: all of this depends on how you manage your stimuli. This is an example
+    // of how to select a random group of sentences and shuffles them.
+    // Another option is to fetch data from a json file somewhere. This will not work in local
+    // unless you serve this html (as opposed to just opening it in a browser due to CORS).
+    fetch("stimuli.json")
+      .then((response) => response.json())
+      .then((data) => {
+        const jsPsych = initJsPsych({
+          on_finish: () => {
+            jatos.endStudy(jsPsych.data.get().json());
+          },
+        });
+        const all_groups = [...new Set(data.map(({ group, ..._ }) => group))];
+        const group = jsPsych.randomization.sampleWithoutReplacement(
+          all_groups,
+          1
+        )[0];
+        const trials = jsPsych.randomization.shuffle(
+          data.filter(({ group: g, ..._ }) => group == g)
+        );
+
+        // Just to help people testing this demo, the plugin doesn't need instructions per se
+        const instructions = {
+          type: jsPsychInstructions,
+          pages: [
+            "In this experiment we are interested in seeing how quickly you<br>can decide what the best way is to continue a sentence.",
+            "You will see two words, one on the left and one on the right.<br>One word will be obviously wrong.",
+            "It is your job to decide which word is the correct continuation of the sentence.",
+            `Swipe <span style="color: red;">left</span> if the correct answer is on the left, or <span style="color: red;">right</span> if the correct answer is on the right.`,
+            "You should do this as quickly and accurately as possible.",
+            "You will then answer a question about that sentence.",
+            `When you are ready, continue to do a practice run.`,
+          ],
+          allow_keys: true,
+          key_backward: "f",
+          key_forward: "j",
+          show_clickable_nav: true,
+        };
+
+        // The actual maze experiment
+        const procedure = {
+          timeline: [
+            {
+              type: jsPsychMaze,
+              sentence: jsPsych.timelineVariable("sentence"),
+			  instruction: "Swipe left or right to start",
+              inter_word_interval: 100,
+              pre_answer_interval: 200,
+              halt_on_error: true,
+              post_trial_gap: 500,
+            },
+            {
+              type: jsPsychHtmlSwipeResponse,
+              stimulus: () => jsPsych.evaluateTimelineVariable("question").text,
+              keyboard_choices: ["f", "j"],
+              button_choices: () => [
+                jsPsych.evaluateTimelineVariable("question").left,
+                jsPsych.evaluateTimelineVariable("question").right,
+              ],
+              on_finish: (data) => {
+                const correct_side =
+                  jsPsych.evaluateTimelineVariable("question").correct;
+                let success;
+                if (data.keyboard_response) {
+                  success = jsPsych.pluginAPI.compareKeys(
+                    data.response,
+                    "left" === correct_side ? "f" : "j"
+                  );
+                } else if (data.button_response) {
+                  success =
+                    data.button_response === ("left" === correct_side ? 0 : 1);
+                } else {
+                  success = data.swipe_response === correct_side;
+                }
+                return { success: success };
+              },
+			  post_trial_gap: 1000,
+            },
+          ],
+          timeline_variables: trials,
+          data: { group: group },
+        };
+
+        jatos.onLoad(() => {
+          jsPsych.run([instructions, procedure]);
+        });
+      });
+  </script>
+</html>
