@@ -13,6 +13,7 @@
 	<script src="https://unpkg.com/@saccadejs/plugin-time-sync@1.0.0"></script>
 	<script src="https://unpkg.com/@saccadejs/plugin-calibrate@1.0.0"></script>
 	<script src="https://unpkg.com/@saccadejs/plugin-validate@1.0.0"></script>
+	<script src="https://unpkg.com/@saccadejs/plugin-catch-up@v1.0.0"></script>
 
 	<script src="https://unpkg.com/@jspsych/plugin-maze"></script>
 	<script src="jspsych-plugin-maze/jspsych-maze.js"></script>
@@ -35,7 +36,7 @@
 		on_finish: () => {
 			jsPsych.data.displayData("json");
 		},
-	});ü
+	});
 	const all_groups = [...new Set(data.map(({ group, ..._ }) => group))];
 	const group = jsPsych.randomization.sampleWithoutReplacement(
 		all_groups,
@@ -82,6 +83,18 @@
 						},
 					},
 				],
+				on_finish: (data) => {
+					// Convert to the same scale as t in saccade_data.
+					data.events = data.events.map(
+						(e) => {
+							return {
+								...e,
+								display_saccade_time: e.display_atime - data.saccade_timing.trial_start,
+								response_saccade_time: e.response_atime - data.saccade_timing.trial_start,
+							}
+						}
+					);
+				},
 			},
 			{
 				type: jsPsychHtmlSwipeResponse,
@@ -122,7 +135,8 @@
 		// Calibrate on 13 dots, then check accuracy on 9 more.
 		{ type: jsPsychSaccadeCalibrate },
 		{ type: jsPsychSaccadeValidate },
-		instructions,
+		// no instruction for the demo, the calibration is already long enough
+		// instructions,
 		procedure,
 		// Get deferred gazes
 		{ type: jsPsychSaccadeCatchUp },

@@ -69,6 +69,8 @@ var jsPsychMaze = (function (jspsych) {
           correct: { type: jspsych.ParameterType.BOOL },
           foil: { type: jspsych.ParameterType.STRING },
           rt: { type: jspsych.ParameterType.INT },
+          display_atime: { type: jspsych.ParameterType.INT },
+          response_atime: { type: jspsych.ParameterType.INT },
           side: { type: jspsych.ParameterType.STRING },
           word: { type: jspsych.ParameterType.STRING },
           word_number: { type: jspsych.ParameterType.INT }
@@ -94,8 +96,8 @@ var jsPsychMaze = (function (jspsych) {
       <div id="jspsych-maze-display_parent">
         <div id="jspsych-maze-center_display" class="jspsych-maze-display"></div>
         <div id="jspsych-maze-text_display" class="jspsych-maze-display"></div>
-        <div id="jspsych-maze-left_display" class="jspsych-maze-display jspsy-maze-answer"></div>
-        <div id="jspsych-maze-right_display" class="jspsych-maze-display jspsy-maze-answer"></div>
+        <div id="jspsych-maze-left_display" class="jspsych-maze-display jspsych-maze-answer"></div>
+        <div id="jspsych-maze-right_display" class="jspsych-maze-display jspsych-maze-answer"></div>
       </div>`;
       this.style = document.createElement("style");
       this.style.innerHTML = `
@@ -198,18 +200,20 @@ var jsPsychMaze = (function (jspsych) {
         const last_display_time = performance.now();
         this.jsPsych.pluginAPI.setTimeout(
           () => listen_input((response_is_left) => {
-            process_response(performance.now() - last_display_time, word_number, response_is_left);
+            process_response(performance.now(), last_display_time, word_number, response_is_left);
           }),
           trial.pre_answer_interval
         );
       };
-      const process_response = (interval, word_number, response_is_left) => {
+      const process_response = (response_atime, display_atime, word_number, response_is_left) => {
         const correct = word_on_the_left[word_number] === response_is_left;
         const [word, foil] = trial.sentence[word_number];
         results.events.push({
           correct,
           foil,
-          rt: interval,
+          rt: response_atime - display_atime,
+          display_atime,
+          response_atime,
           side: word_on_the_left[word_number] ? "left" : "right",
           word
         });
@@ -230,9 +234,7 @@ var jsPsychMaze = (function (jspsych) {
         this.jsPsych.finishTrial(results);
       };
       const setup = () => {
-        this.display_message(
-          this.instruction
-        );
+        this.display_message(this.instruction);
         listen_input((_) => start_trial());
       };
       setup();
