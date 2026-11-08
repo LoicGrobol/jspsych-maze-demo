@@ -77,7 +77,7 @@
 			let success;
             if (data.keyboard_response) {
               success = jsPsych.pluginAPI.compareKeys(
-                data.response,
+                data.keyboard_response,
                 "left" === correct_side ? "f" : "j"
               );
             } else if (data.button_response) {
