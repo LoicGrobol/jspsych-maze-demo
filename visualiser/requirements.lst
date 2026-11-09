@@ -2,5 +2,4 @@ click
 matplotlib
 numpy
 polars
-seaborn
 tol-colors

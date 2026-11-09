@@ -1,13 +1,12 @@
 import json
 import pathlib
-
 from typing import TextIO
 
 import click
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import tol_colors as tc
+from matplotlib.collections import PatchCollection
 
 
 @click.command()
@@ -21,6 +20,8 @@ def main(source: TextIO, target: pathlib.Path):
     target.mkdir(exist_ok=True, parents=True)
     data = json.load(source)
 
+    saccade_validate = next(t for t in data if t["trial_type"] == "saccade-validate")
+    dp = saccade_validate["median_error_px"]
     trials = [t for t in data if t["trial_type"] == "maze"]
     for t in trials:
         trial_dir = target / str(t["trial_index"])
@@ -47,43 +48,45 @@ def main(source: TextIO, target: pathlib.Path):
             y = np.array([g["y"] for g in gazes])
 
             target_left = t["saccade_targets"]["#jspsych-maze-left_display"]
-            target_right = t["saccade_targets"]["#jspsych-maze-right_display"]
 
             # The plugin doesn't report its geometry right now but we know that the center of the
             # left display should be at (1/3, 1/2) of the global display
             x_max = (target_left["left"] + target_left["width"] / 2) * 3
             y_max = (target_left["top"] + target_left["height"] / 2) * 2
 
-            plt.rcParams["image.cmap"] = "tol.sunset"
             ax = plt.figure().add_subplot()
-            ax.set(title=title)
+            ax.set_title(title, y=-0.125)
             ax.set_xlim(0, x_max)
             # Pixel coordinates are top left to bottom right
             ax.set_ylim(y_max, 0)
+            ax.xaxis.tick_top()
+            ax.set_aspect("equal")
 
-            sns.kdeplot(x=x, y=y, ax=ax, fill=True, cut=16)
+            # Can't scatter if we want an easy way to control the markers size according to the precision
+            circles = [
+                plt.Circle(
+                    (xi, yi),
+                    alpha=0.5,
+                    fill=True,
+                    radius=dp,
+                    linewidth=None,
+                )
+                for xi, yi in zip(x, y)
+            ]
+            ax.add_collection(PatchCollection(circles, array=np.arange(len(circles))))
+            ax.add_line(plt.Line2D(x, y, c="black", linewidth=0.5))
 
-            ax.scatter(x, y, alpha=0.75)
-
+            # We don't measure the rect of each target for now, but we now their centers are at (1/3, 1/2) and (2/3, 1/2)
             ax.add_patch(
-                plt.Rectangle(
-                    (target_left["left"], target_left["bottom"]),
-                    target_left["width"],
-                    target_left["height"],
-                    fill=False,
+                plt.Circle((x_max / 3, y_max / 2), fill=False, linewidth=2, radius=dp)
+            )
+            ax.add_patch(
+                plt.Circle(
+                    (2 * x_max / 3, y_max / 2), fill=False, linewidth=2, radius=dp
                 )
             )
 
-            ax.add_patch(
-                plt.Rectangle(
-                    (target_right["left"], target_right["bottom"]),
-                    target_right["width"],
-                    target_right["height"],
-                    fill=False,
-                )
-            )
-
-            ax.figure.savefig(trial_dir / f"{i}.png")
+            ax.figure.savefig(trial_dir / f"{i}.png", dpi=300)
 
 
 if __name__ == "__main__":
