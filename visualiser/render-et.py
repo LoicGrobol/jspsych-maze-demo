@@ -6,6 +6,8 @@ from typing import TextIO
 import click
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+import tol_colors as tc
 
 
 @click.command()
@@ -18,6 +20,7 @@ import numpy as np
 def main(source: TextIO, target: pathlib.Path):
     target.mkdir(exist_ok=True, parents=True)
     data = json.load(source)
+
     trials = [t for t in data if t["trial_type"] == "maze"]
     for t in trials:
         trial_dir = target / str(t["trial_index"])
@@ -25,11 +28,13 @@ def main(source: TextIO, target: pathlib.Path):
         for i, e in enumerate(t["events"]):
             print(e)
             # Or `[::2*(e["side"]=="left")-1]` ;)
-            left_text, right_text = (
-                [e["word"], e["foil"]]
-                if e["side"] == "left"
-                else [e["foil"], e["word"]]
-            )
+            if e["side"] == "left":
+                left_text, right_text = e["word"], e["foil"]
+                title = f"$\\bf{{{e['word']}}}$ vs {e['foil']}"
+            else:
+                left_text, right_text = e["word"], e["foil"]
+                title = f"{e['foil']} vs $\\bf{{{e['word']}}}$"
+
             gazes = [
                 g
                 for g in t["saccade_data"]
@@ -44,7 +49,21 @@ def main(source: TextIO, target: pathlib.Path):
             target_left = t["saccade_targets"]["#jspsych-maze-left_display"]
             target_right = t["saccade_targets"]["#jspsych-maze-right_display"]
 
+            # The plugin doesn't report its geometry right now but we know that the center of the
+            # left display should be at (1/3, 1/2) of the global display
+            x_max = (target_left["left"] + target_left["width"] / 2) * 3
+            y_max = (target_left["top"] + target_left["height"] / 2) * 2
+
+            plt.rcParams["image.cmap"] = "tol.sunset"
             ax = plt.figure().add_subplot()
+            ax.set(title=title)
+            ax.set_xlim(0, x_max)
+            # Pixel coordinates are top left to bottom right
+            ax.set_ylim(y_max, 0)
+
+            sns.kdeplot(x=x, y=y, ax=ax, fill=True, cut=16)
+
+            ax.scatter(x, y, alpha=0.75)
 
             ax.add_patch(
                 plt.Rectangle(
@@ -64,9 +83,6 @@ def main(source: TextIO, target: pathlib.Path):
                 )
             )
 
-            ax.scatter(x, y)
-            ax.set(title=f"{left_text} vs {right_text}")
-            ax.yaxis.set_inverted(True)
             ax.figure.savefig(trial_dir / f"{i}.png")
 
 
