@@ -9,11 +9,12 @@ Demo and documentation
 
 You can test the plugin right with the hosted demos:
 
-- [Raw plugin](https://loicgrobol.github.io/jspsych-maze-demo/examples/raw/), with all default
-  settings. 
-- [Standard setting](https://loicgrobol.github.io/jspsych-maze-demo/examples/base/) including group
-  selection, subject instructions, and questions to check the comprehension.
-- [w/ eye-tracking](https://loicgrobol.github.io/jspsych-maze-demo/examples/eye-tracking/)
+- [Just the plugin](https://loicgrobol.github.io/jspsych-maze-demo/examples/raw/), with all default
+  settings.
+- [A standard experimental setting](https://loicgrobol.github.io/jspsych-maze-demo/examples/base/)
+  including group selection, subject instructions, and questions to check the comprehension.
+- [The same with eye-tracking](https://loicgrobol.github.io/jspsych-maze-demo/examples/eye-tracking/)
+  using [SaccadeJS](https://saccade.jspsych.org/).
 
 All the demos are just building upon the raw one by adding functionalities with jsPsych itself. You
 do not have to use jsPsych the way we do in these examples for the plugin to work, and indeed it
@@ -138,9 +139,11 @@ For every sentence, the plugin outputs a report with the following shape. The in
 },
 ```
 
-See the documentation of the plugin for details on what is measured and how. See the documentation of jsPsych for more details on the general output format.
+See the documentation of the plugin for details on what is measured and how. See the documentation
+of jsPsych for more details on the general output format.
 
-A complete example of output is available in the [standard setting example](https://github.com/LoicGrobol/jspsych-maze-demo/tree/main/examples/base/output-sample.json).
+A complete example of output is available in the
+[standard setting example](https://github.com/LoicGrobol/jspsych-maze-demo/tree/main/examples/base/output-sample.json).
 
 The
 [eye-tracking example](https://github.com/LoicGrobol/jspsych-maze-demo/tree/main/examples/eye-tracking)
