@@ -8,5 +8,5 @@ plugin](https://github.com/LoicGrobol/jspsych-contrib/tree/maze/packages/plugin-
 
 ### Demos
 
-- [Base](https://loicgrobol.github.io/jspsych-maze-demo)
-- [w/ eye-tracking](https://loicgrobol.github.io/jspsych-maze-demo/visualizer/)
+- [Base](https://loicgrobol.github.io/jspsych-maze-demoexamples/base/)
+- [w/ eye-tracking](https://loicgrobol.github.io/jspsych-maze-demo/examples/eye-tracking/)
