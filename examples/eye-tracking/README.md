@@ -19,7 +19,7 @@ You can run the visualizer like this after installing its dependencies:
 
 ```bash
 pip install -U -r requirements.lst
-python visualiser/render-et.py {{ path to an output json file }} {{ path to an output directory }}
+python visualiser/render-et.py path/to/a/result/file.json /path/to/an/output/image/directory/
 ```
 
 However, in real settings, it would probably make more sense to rather use it as inspiration to
